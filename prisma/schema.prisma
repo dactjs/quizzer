@@ -1,0 +1,146 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+///////////
+// Users //
+///////////
+
+model User {
+  id    String  @id @default(uuid())
+  name  String
+  email String  @unique
+  image String?
+
+  status UserStatus @default(ENABLED)
+  role   UserRole   @default(USER)
+
+  convocatories QuizConvocatory[]
+  submissions   QuizSubmission[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum UserStatus {
+  ENABLED
+  DISABLED
+}
+
+enum UserRole {
+  ADMIN
+  USER
+}
+
+/////////////
+// Quizzes //
+/////////////
+
+model Quiz {
+  id      String @id @default(uuid())
+  subject String @unique
+
+  currentVersion   QuizVersion? @relation("QuizCurrentVersion", fields: [currentVersionId], references: [id])
+  currentVersionId String?      @unique
+
+  versions QuizVersion[] @relation("QuizVersions")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model QuizVersion {
+  id   String @id @default(uuid())
+  name String
+
+  questions     QuizQuestion[]
+  convocatories QuizConvocatory[]
+
+  currentQuiz Quiz? @relation("QuizCurrentVersion")
+
+  quiz   Quiz   @relation("QuizVersions", fields: [quizId], references: [id], onDelete: Cascade)
+  quizId String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([name, quizId])
+}
+
+model QuizQuestion {
+  id          String  @id @default(uuid())
+  prompt      String
+  description String?
+
+  options String[]
+  answer  String
+
+  category String @default("General")
+
+  submissions QuizSubmission[]
+
+  version   QuizVersion @relation(fields: [versionId], references: [id], onDelete: Cascade)
+  versionId String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([prompt, versionId])
+}
+
+model QuizConvocatory {
+  id        String @id @default(uuid())
+  questions Int    @default(20)
+  attempts  Int    @default(1)
+  timer     Int?
+
+  users       User[]
+  submissions QuizSubmission[]
+
+  version   QuizVersion @relation(fields: [versionId], references: [id], onDelete: Restrict)
+  versionId String
+
+  startAt DateTime
+  endAt   DateTime
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model QuizSubmission {
+  id String @id @default(uuid())
+
+  status QuizSubmissionStatus  @default(DRAFT)
+  reason QuizSubmissionReason?
+
+  results Json[] @default([]) // Array <{ answer: string; question: QuizQuestion }>
+
+  questions QuizQuestion[]
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Restrict)
+  userId String
+
+  convocatory   QuizConvocatory @relation(fields: [convocatoryId], references: [id], onDelete: Restrict)
+  convocatoryId String
+
+  startedAt DateTime  @default(now())
+  endedAt   DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum QuizSubmissionStatus {
+  DRAFT
+  SUBMITTED
+}
+
+enum QuizSubmissionReason {
+  SUBMITTED
+  TIMEOUT
+}
