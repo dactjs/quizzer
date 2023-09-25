@@ -64,19 +64,17 @@ export const Footer: React.FC = () => {
           const data: DeleteCurrentQuizAttemptData = {
             reason: QuizSubmissionReason.SUBMITTED,
             results: attempt.submission
-              ? attempt.submission.questions
-                  .filter((question) => Boolean(values[question.id]))
-                  .map((question) => ({
-                    answer: values[question.id],
-                    question: {
-                      id: question.id,
-                      prompt: question.prompt,
-                      description: question.description,
-                      options: question.options,
-                      answer: question.answer,
-                      category: question.category,
-                    },
-                  }))
+              ? attempt.submission.questions.map((question) => ({
+                  answer: values[question.id] || null,
+                  question: {
+                    id: question.id,
+                    prompt: question.prompt,
+                    description: question.description,
+                    options: question.options,
+                    answer: question.answer,
+                    category: question.category,
+                  },
+                }))
               : [],
           };
 

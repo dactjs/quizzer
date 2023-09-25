@@ -127,9 +127,11 @@ export const QuizConvocatoryAttemptRendererProvider: React.FC<
 
   const methods = useForm({
     defaultValues: results
-      .filter((result) => result.question.options.includes(result.answer))
+      .filter((result) => {
+        return result.answer && result.question.options.includes(result.answer);
+      })
       .reduce((acc, result) => {
-        acc[result.question.id] = result.answer;
+        if (result.answer) acc[result.question.id] = result.answer;
 
         return acc;
       }, {} as QuizRendererFormValues),

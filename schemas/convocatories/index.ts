@@ -51,7 +51,7 @@ export const CreateQuizSubmissionSchema = zod.object({
 
 export const QuizQuestionResultSchema = zod
   .object({
-    answer: zod.string().nonempty(),
+    answer: zod.string().nonempty().nullable(),
     question: zod
       .object({
         id: zod.string().uuid(),
@@ -66,10 +66,15 @@ export const QuizQuestionResultSchema = zod
         path: ["answer"],
       }),
   })
-  .refine((data) => data.question.options.includes(data.answer), {
-    message: "Answer must be one of the options",
-    path: ["answer"],
-  });
+  .refine(
+    (data) =>
+      typeof data.answer !== "string" ||
+      data.question.options.includes(data.answer),
+    {
+      message: "Answer must be one of the options",
+      path: ["answer"],
+    }
+  );
 
 //////////////
 // Attempts //
