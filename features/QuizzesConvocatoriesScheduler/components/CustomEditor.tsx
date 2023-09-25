@@ -106,6 +106,7 @@ export const CustomEditor: React.FC<CustomEditorProps> = ({ scheduler }) => {
         const data: CreateQuizConvocatoryData | UpdateQuizConvocatoryData = {
           version: formData.version.id,
           users: formData.users.map((user) => user.id),
+          questions: formData.questions || 20,
           attempts: formData.attempts || 1,
           timer: formData.timer || null,
           startAt: formData.startAt.toISOString(),
