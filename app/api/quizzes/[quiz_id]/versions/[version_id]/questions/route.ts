@@ -172,16 +172,10 @@ export async function PUT(
       return questions;
     });
 
-    return NextResponse.json(
-      {
-        data: questions,
-        error: null,
-      },
-      {
-        status: StatusCodes.CREATED,
-        statusText: ReasonPhrases.CREATED,
-      }
-    );
+    return NextResponse.json({
+      data: questions,
+      error: null,
+    });
   } catch (error) {
     const message =
       error instanceof Error

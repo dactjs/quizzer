@@ -40,6 +40,20 @@ export const authOptions: AuthOptions = {
 
       return true;
     },
+    async jwt({ token }) {
+      if (!token.email) throw new Error("Missing email");
+
+      const user = await prisma.user.findUnique({
+        where: { email: token.email },
+      });
+
+      if (!user) throw new Error("User not found");
+
+      token.status = user.status;
+      token.role = user.role;
+
+      return token;
+    },
   },
   pages: {
     signIn: PAGES.SIGN_IN,

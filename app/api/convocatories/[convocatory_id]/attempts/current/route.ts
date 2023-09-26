@@ -101,16 +101,10 @@ export async function GET(
       };
     });
 
-    return NextResponse.json(
-      {
-        data: attempt,
-        error: null,
-      },
-      {
-        status: StatusCodes.CREATED,
-        statusText: ReasonPhrases.CREATED,
-      }
-    );
+    return NextResponse.json({
+      data: attempt,
+      error: null,
+    });
   } catch (error) {
     if (error instanceof CurrentAttemptError) {
       return NextResponse.json(
@@ -338,16 +332,10 @@ export async function PUT(
       };
     });
 
-    return NextResponse.json(
-      {
-        data: attempt,
-        error: null,
-      },
-      {
-        status: StatusCodes.CREATED,
-        statusText: ReasonPhrases.CREATED,
-      }
-    );
+    return NextResponse.json({
+      data: attempt,
+      error: null,
+    });
   } catch (error) {
     if (error instanceof CurrentAttemptError) {
       return NextResponse.json(
@@ -459,16 +447,10 @@ export async function DELETE(
       };
     });
 
-    return NextResponse.json(
-      {
-        data: attempt,
-        error: null,
-      },
-      {
-        status: StatusCodes.CREATED,
-        statusText: ReasonPhrases.CREATED,
-      }
-    );
+    return NextResponse.json({
+      data: attempt,
+      error: null,
+    });
   } catch (error) {
     if (error instanceof CurrentAttemptError) {
       return NextResponse.json(
