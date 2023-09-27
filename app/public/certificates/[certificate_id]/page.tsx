@@ -1,9 +1,9 @@
 import { Metadata } from "next";
 import { notFound } from "next/navigation";
+import dynamic from "next/dynamic";
 
 import { prisma } from "@/lib";
-import { CertificatePDF } from "@/features";
-import { Widget } from "@/components";
+import { Loader, Widget } from "@/components";
 import { getShortUUID } from "@/schemas";
 import { ENV, ENDPOINTS } from "@/constants";
 
@@ -11,6 +11,14 @@ import {
   GetResponse,
   CertificateWithUserAndConvocatory,
 } from "@/app/api/certificates/[certificate_id]/route";
+
+const DynamicCertificatePDF = dynamic(
+  () => import("@/features/CertificatePDF"),
+  {
+    loading: () => <Loader fullscreen />,
+    ssr: false,
+  }
+);
 
 type Params = { certificate_id: string };
 
@@ -38,7 +46,7 @@ const CertificatePage: React.FC<{
       disableDefaultSizes
       sx={{ width: "100vw", height: "100vh", overflow: "hidden" }}
     >
-      <CertificatePDF certificate={certificate} />
+      <DynamicCertificatePDF certificate={certificate} />
     </Widget>
   );
 };

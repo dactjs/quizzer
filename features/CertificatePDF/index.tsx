@@ -1,3 +1,5 @@
+"use client";
+
 import { PDFViewer, Document, Page, StyleSheet } from "@react-pdf/renderer";
 
 import { getShortUUID } from "@/schemas";
