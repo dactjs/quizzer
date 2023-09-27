@@ -2,6 +2,7 @@ import { Metadata } from "next";
 import { notFound } from "next/navigation";
 
 import { prisma } from "@/lib";
+import { CertificatePDF } from "@/features";
 import { Widget } from "@/components";
 import { getShortUUID } from "@/schemas";
 import { ENV, ENDPOINTS } from "@/constants";
@@ -37,7 +38,7 @@ const CertificatePage: React.FC<{
       disableDefaultSizes
       sx={{ width: "100vw", height: "100vh", overflow: "hidden" }}
     >
-      <pre>{JSON.stringify(certificate, null, 2)}</pre>
+      <CertificatePDF certificate={certificate} />
     </Widget>
   );
 };
