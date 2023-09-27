@@ -447,8 +447,18 @@ export async function DELETE(
       const { passed } = calcSubmissionScore(updated);
 
       if (passed) {
-        const certificate = await tx.certificate.create({
-          data: {
+        const certificate = await tx.certificate.upsert({
+          where: {
+            userId_convocatoryId: {
+              userId: updated.userId,
+              convocatoryId: updated.convocatoryId,
+            },
+          },
+          create: {
+            user: { connect: { email } },
+            convocatory: { connect: { id: params.convocatory_id } },
+          },
+          update: {
             user: { connect: { email } },
             convocatory: { connect: { id: params.convocatory_id } },
           },
