@@ -6,9 +6,10 @@ import confetti from "canvas-confetti";
 import { calcSubmissionScore, QuizQuestionResultData } from "@/schemas";
 import { Certificate } from "@/types";
 
-import { QuizConvocatoryAttempt } from "@/app/api/convocatories/[convocatory_id]/attempts/current/route";
+import { QuizConvocatoryAttempt } from "@/app/api/convocatories/[convocatory_id]/attempts/[email]/current/route";
 
 import {
+  QuizConvocatoryAttemptRendererFormat,
   QuizConvocatoryAttemptRendererMode,
   QuizRendererFormValues,
 } from "../types";
@@ -105,6 +106,7 @@ const initialState: State = {
 /////////////
 
 export type QuizConvocatoryAttemptRendererContextValue = {
+  format: QuizConvocatoryAttemptRendererFormat;
   attempt: QuizConvocatoryAttempt;
   certificate: Certificate | null;
 
@@ -130,12 +132,13 @@ const QuizConvocatoryAttemptRendererContext =
   );
 
 export interface QuizConvocatoryAttemptRendererProviderProps {
+  format: QuizConvocatoryAttemptRendererFormat;
   attempt: QuizConvocatoryAttempt;
 }
 
 export const QuizConvocatoryAttemptRendererProvider: React.FC<
   React.PropsWithChildren<QuizConvocatoryAttemptRendererProviderProps>
-> = ({ attempt, children }) => {
+> = ({ format, attempt, children }) => {
   const results = attempt.submission
     ? (attempt.submission.results as QuizQuestionResultData[])
     : [];
@@ -170,6 +173,7 @@ export const QuizConvocatoryAttemptRendererProvider: React.FC<
   return (
     <QuizConvocatoryAttemptRendererContext.Provider
       value={{
+        format,
         attempt: state.attempt || attempt,
         certificate: state.certificate,
 

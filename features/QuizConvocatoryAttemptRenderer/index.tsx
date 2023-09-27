@@ -5,7 +5,7 @@ import { TabPanel } from "@mui/lab";
 
 import { LAYOUT_SIZES } from "@/components";
 
-import { QuizConvocatoryAttempt } from "@/app/api/convocatories/[convocatory_id]/attempts/current/route";
+import { QuizConvocatoryAttempt } from "@/app/api/convocatories/[convocatory_id]/attempts/[email]/current/route";
 
 import {
   QuizConvocatoryAttemptRendererProvider,
@@ -22,15 +22,17 @@ import {
   QuizResultsDialog,
 } from "./components";
 import { useAutosave } from "./hooks";
-import { QuizConvocatoryAttemptRendererMode } from "./types";
+import {
+  QuizConvocatoryAttemptRendererFormat,
+  QuizConvocatoryAttemptRendererMode,
+} from "./types";
 
 export interface QuizConvocatoryAttemptRendererProps {
+  format: QuizConvocatoryAttemptRendererFormat;
   attempt: QuizConvocatoryAttempt;
 }
 
-const QuizConvocatoryAttemptRenderer: React.FC<
-  QuizConvocatoryAttemptRendererProps
-> = () => {
+const QuizConvocatoryAttemptRenderer: React.FC = () => {
   const { attempt, isShowingResults } = useQuizConvocatoryAttemptRenderer();
 
   useAutosave();
@@ -59,7 +61,7 @@ const QuizConvocatoryAttemptRenderer: React.FC<
                   `,
           },
           gap: (theme) => theme.spacing(1),
-          height: { md: `calc(100vh - ${LAYOUT_SIZES.HEADER_HEIGHT})` },
+          height: { md: "100%" },
           paddingY: (theme) => theme.spacing(2),
           overflow: { md: "hidden" },
         }}
@@ -125,9 +127,9 @@ const QuizConvocatoryAttemptRenderer: React.FC<
 
 const QuizConvocatoryAttemptRendererWrapper: React.FC<
   QuizConvocatoryAttemptRendererProps
-> = ({ attempt }) => (
-  <QuizConvocatoryAttemptRendererProvider attempt={attempt}>
-    <QuizConvocatoryAttemptRenderer attempt={attempt} />
+> = ({ format, attempt }) => (
+  <QuizConvocatoryAttemptRendererProvider format={format} attempt={attempt}>
+    <QuizConvocatoryAttemptRenderer />
   </QuizConvocatoryAttemptRendererProvider>
 );
 

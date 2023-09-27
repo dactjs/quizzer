@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { useSession } from "next-auth/react";
 import { Paper, Stack, Divider, Typography } from "@mui/material";
 import { PlayCircle as PlayIcon } from "@mui/icons-material";
 import { LoadingButton } from "@mui/lab";
@@ -13,7 +12,7 @@ import { ENV, ENDPOINTS, PAGES } from "@/constants";
 import {
   PostResponse,
   QuizConvocatoryAttempt,
-} from "@/app/api/convocatories/[convocatory_id]/attempts/current/route";
+} from "@/app/api/convocatories/[convocatory_id]/attempts/[email]/current/route";
 
 export interface QuizConvocatoryAttemptLauncherProps {
   attempt: QuizConvocatoryAttempt;
@@ -23,8 +22,6 @@ export const QuizConvocatoryAttemptLauncher: React.FC<
   QuizConvocatoryAttemptLauncherProps
 > = ({ attempt }) => {
   const router = useRouter();
-
-  const session = useSession();
 
   const { enqueueSnackbar } = useSnackbar();
 
@@ -62,14 +59,10 @@ export const QuizConvocatoryAttemptLauncher: React.FC<
       }
 
       if (!attempt.submission) {
-        const email = session.data?.user?.email;
-
         const url = new URL(
-          `${ENDPOINTS.CONVOCATORIES}/${attempt.convocatory.id}/attempts/current`,
+          `${ENDPOINTS.CONVOCATORIES}/${attempt.convocatory.id}/attempts/${attempt.user.email}/current`,
           ENV.NEXT_PUBLIC_SITE_URL
         );
-
-        if (email) url.searchParams.append("email", email);
 
         const response = await fetch(url, {
           method: "POST",

@@ -48,7 +48,7 @@ export const Header: React.FC = () => {
               wordBreak: "break-word",
             }}
           >
-            {attempt.submission.user.name}
+            {attempt.user.name}
           </Typography>
         )}
       </Stack>

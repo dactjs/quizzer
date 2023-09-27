@@ -13,7 +13,7 @@ import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import {
   GetResponse,
   QuizConvocatoryAttempt,
-} from "@/app/api/convocatories/[convocatory_id]/attempts/current/route";
+} from "@/app/api/convocatories/[convocatory_id]/attempts/[email]/current/route";
 
 type Params = { convocatory_id: string };
 
@@ -62,14 +62,10 @@ async function getCurrentAttempt(params: {
 }): Promise<QuizConvocatoryAttempt> {
   const session = await getServerSession(authOptions);
 
-  const email = session?.user?.email;
-
   const url = new URL(
-    `${ENDPOINTS.CONVOCATORIES}/${params.convocatory}/attempts/current`,
+    `${ENDPOINTS.CONVOCATORIES}/${params.convocatory}/attempts/${session?.user?.email}/current`,
     ENV.NEXT_PUBLIC_SITE_URL
   );
-
-  if (email) url.searchParams.append("email", email);
 
   const response = await fetch(url, { cache: "no-cache" });
 

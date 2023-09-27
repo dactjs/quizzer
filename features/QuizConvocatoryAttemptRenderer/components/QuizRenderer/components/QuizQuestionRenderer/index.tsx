@@ -66,7 +66,7 @@ export const QuizQuestionRenderer: React.FC<QuizQuestionRendererProps> = ({
             alignItems="center"
             spacing={1}
           >
-            <FormLabel>{question.prompt}</FormLabel>
+            <FormLabel sx={{ fontWeight: "bold" }}>{question.prompt}</FormLabel>
 
             <Chip size="small" label={question.category} />
           </Stack>
@@ -82,9 +82,15 @@ export const QuizQuestionRenderer: React.FC<QuizQuestionRendererProps> = ({
             ))}
           </RadioGroup>
 
-          {error && (
-            <FormHelperText sx={{ marginX: 0, color: "inherit" }}>
-              {error.message}
+          {(error || question.description) && (
+            <FormHelperText
+              sx={{
+                marginX: 0,
+                fontWeight: "bolder",
+                color: "text.secondary",
+              }}
+            >
+              {error?.message || question.description}
             </FormHelperText>
           )}
         </FormControl>

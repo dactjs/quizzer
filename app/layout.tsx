@@ -1,7 +1,6 @@
 import { Metadata } from "next";
 import { Inter } from "next/font/google";
 
-import { SessionContext } from "@/context";
 import { ThemeRegistry } from "@/theme";
 
 const inter = Inter({ subsets: ["latin"] });
@@ -14,9 +13,7 @@ export const metadata: Metadata = {
 const RootLayout: React.FC<React.PropsWithChildren> = ({ children }) => (
   <html lang="es">
     <body className={inter.className}>
-      <SessionContext>
-        <ThemeRegistry options={{ key: "mui" }}>{children}</ThemeRegistry>
-      </SessionContext>
+      <ThemeRegistry options={{ key: "mui" }}>{children}</ThemeRegistry>
     </body>
   </html>
 );

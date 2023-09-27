@@ -3,15 +3,16 @@
 import { Typography } from "@mui/material";
 
 import { useQuizConvocatoryAttemptRenderer } from "../../context";
+import { QuizConvocatoryAttemptRendererFormat } from "../../types";
 
 import { useTimer } from "./hooks";
 
 export const Timer: React.FC = () => {
-  const { attempt } = useQuizConvocatoryAttemptRenderer();
+  const { format, attempt } = useQuizConvocatoryAttemptRenderer();
 
   const { timeElapsed, remaining } = useTimer();
 
-  const format = (time: number) => {
+  const formatTime = (time: number) => {
     const hours = Math.floor(time / 3600)
       .toString()
       .padStart(2, "0");
@@ -22,7 +23,7 @@ export const Timer: React.FC = () => {
 
     const seconds = (time % 60).toString().padStart(2, "0");
 
-    return `${hours}:${minutes}:${seconds}`;
+    return time > 0 ? `${hours}:${minutes}:${seconds}` : "00:00:00";
   };
 
   return (
@@ -40,11 +41,13 @@ export const Timer: React.FC = () => {
               : theme.palette.text.secondary,
         }}
       >
-        {attempt.convocatory.timer
-          ? remaining > 0
-            ? format(remaining)
-            : "Tiempo agotado"
-          : format(timeElapsed)}
+        {format === QuizConvocatoryAttemptRendererFormat.DIGITAL
+          ? attempt.convocatory.timer
+            ? remaining > 0
+              ? formatTime(remaining)
+              : "Tiempo agotado"
+            : formatTime(timeElapsed)
+          : "Subida manual"}
       </Typography>
     </>
   );

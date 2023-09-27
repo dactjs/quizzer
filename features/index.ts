@@ -13,5 +13,6 @@ export * from "./QuizzesConvocatoriesPerMonthChart";
 
 export * from "./QuizConvocatoryAttemptLauncher";
 export * from "./QuizConvocatoryAttemptRenderer";
+export * from "./QuizConvocatoryAttemptPDF";
 
 export * from "./CertificatePDF";

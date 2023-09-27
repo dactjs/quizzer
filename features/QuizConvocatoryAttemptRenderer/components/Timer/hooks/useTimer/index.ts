@@ -1,5 +1,4 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
-import { useSession } from "next-auth/react";
 import { useSnackbar } from "notistack";
 import { useFormContext } from "react-hook-form";
 import { differenceInSeconds } from "date-fns";
@@ -8,17 +7,18 @@ import { DeleteCurrentQuizAttemptData } from "@/schemas";
 import { ENV, ENDPOINTS } from "@/constants";
 import { QuizSubmissionStatus, QuizSubmissionReason } from "@/types";
 
-import { DeleteResponse } from "@/app/api/convocatories/[convocatory_id]/attempts/current/route";
+import { DeleteResponse } from "@/app/api/convocatories/[convocatory_id]/attempts/[email]/current/route";
 
 import { useQuizConvocatoryAttemptRenderer } from "../../../../context";
-import { QuizRendererFormValues } from "../../../../types";
+import {
+  QuizConvocatoryAttemptRendererFormat,
+  QuizRendererFormValues,
+} from "../../../../types";
 
 import { calcTimeRemaining } from "../../utils";
 
 export function useTimer() {
-  const { data: session } = useSession();
-
-  const { attempt, showResults } = useQuizConvocatoryAttemptRenderer();
+  const { format, attempt, showResults } = useQuizConvocatoryAttemptRenderer();
 
   const { enqueueSnackbar } = useSnackbar();
 
@@ -52,6 +52,7 @@ export function useTimer() {
 
   useEffect(() => {
     const stopped =
+      format === QuizConvocatoryAttemptRendererFormat.PDF ||
       !attempt.submission ||
       attempt.submission.status === QuizSubmissionStatus.SUBMITTED;
 
@@ -86,14 +87,10 @@ export function useTimer() {
         const values = getValues();
 
         try {
-          const email = session?.user?.email;
-
           const url = new URL(
-            `${ENDPOINTS.CONVOCATORIES}/${attempt.convocatory.id}/attempts/current`,
+            `${ENDPOINTS.CONVOCATORIES}/${attempt.convocatory.id}/attempts/${attempt.user.email}/current`,
             ENV.NEXT_PUBLIC_SITE_URL
           );
-
-          if (email) url.searchParams.append("email", email);
 
           const data: DeleteCurrentQuizAttemptData = {
             reason: QuizSubmissionReason.TIMEOUT,
@@ -144,7 +141,7 @@ export function useTimer() {
       document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
   }, [
-    session?.user?.email,
+    format,
     attempt,
     startedAt,
     timer,

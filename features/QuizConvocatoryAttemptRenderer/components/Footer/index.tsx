@@ -1,6 +1,5 @@
 "use client";
 
-import { useSession } from "next-auth/react";
 import { Paper, Stack, Button } from "@mui/material";
 import {
   SkipPrevious as BackIcon,
@@ -16,7 +15,7 @@ import { DeleteCurrentQuizAttemptData } from "@/schemas";
 import { ENV, ENDPOINTS } from "@/constants";
 import { QuizSubmissionStatus, QuizSubmissionReason } from "@/types";
 
-import { DeleteResponse } from "@/app/api/convocatories/[convocatory_id]/attempts/current/route";
+import { DeleteResponse } from "@/app/api/convocatories/[convocatory_id]/attempts/[email]/current/route";
 
 import { useQuizConvocatoryAttemptRenderer } from "../../context";
 import { PAGE_SIZE } from "../../config";
@@ -26,8 +25,6 @@ import {
 } from "../../types";
 
 export const Footer: React.FC = () => {
-  const { data: session } = useSession();
-
   const { attempt, mode, page, changePage, showResults } =
     useQuizConvocatoryAttemptRenderer();
 
@@ -52,14 +49,10 @@ export const Footer: React.FC = () => {
     })
       .then(async () => {
         try {
-          const email = session?.user?.email;
-
           const url = new URL(
-            `${ENDPOINTS.CONVOCATORIES}/${attempt.convocatory.id}/attempts/current`,
+            `${ENDPOINTS.CONVOCATORIES}/${attempt.convocatory.id}/attempts/${attempt.user.email}/current`,
             ENV.NEXT_PUBLIC_SITE_URL
           );
-
-          if (email) url.searchParams.append("email", email);
 
           const data: DeleteCurrentQuizAttemptData = {
             reason: QuizSubmissionReason.SUBMITTED,

@@ -1,5 +1,4 @@
 import { useEffect } from "react";
-import { useSession } from "next-auth/react";
 import { useSnackbar } from "notistack";
 import { useFormContext } from "react-hook-form";
 
@@ -7,16 +6,17 @@ import { UpdateCurrentQuizAttemptData } from "@/schemas";
 import { ENV, ENDPOINTS } from "@/constants";
 import { QuizSubmissionStatus } from "@/types";
 
-import { PutResponse } from "@/app/api/convocatories/[convocatory_id]/attempts/current/route";
+import { PutResponse } from "@/app/api/convocatories/[convocatory_id]/attempts/[email]/current/route";
 
 import { useQuizConvocatoryAttemptRenderer } from "../context";
 import { AUTOSAVE_INTERVAL } from "../config";
-import { QuizRendererFormValues } from "../types";
+import {
+  QuizConvocatoryAttemptRendererFormat,
+  QuizRendererFormValues,
+} from "../types";
 
 export function useAutosave() {
-  const { data: session } = useSession();
-
-  const { attempt } = useQuizConvocatoryAttemptRenderer();
+  const { format, attempt } = useQuizConvocatoryAttemptRenderer();
 
   const { enqueueSnackbar } = useSnackbar();
 
@@ -24,7 +24,8 @@ export function useAutosave() {
 
   useEffect(() => {
     const stopped =
-      !attempt?.submission ||
+      format === QuizConvocatoryAttemptRendererFormat.PDF ||
+      !attempt.submission ||
       attempt.submission.status === QuizSubmissionStatus.SUBMITTED;
 
     if (stopped) return;
@@ -35,17 +36,15 @@ export function useAutosave() {
         return;
       }
 
+      if (document.visibilityState === "hidden") return;
+
       const values = getValues();
 
       try {
-        const email = session?.user?.email;
-
         const url = new URL(
-          `${ENDPOINTS.CONVOCATORIES}/${attempt.convocatory.id}/attempts/current`,
+          `${ENDPOINTS.CONVOCATORIES}/${attempt.convocatory.id}/attempts/${attempt.user.email}/current`,
           ENV.NEXT_PUBLIC_SITE_URL
         );
-
-        if (email) url.searchParams.append("email", email);
 
         const data: UpdateCurrentQuizAttemptData = {
           results: attempt.submission
@@ -86,7 +85,7 @@ export function useAutosave() {
     }, AUTOSAVE_INTERVAL);
 
     return () => clearInterval(interval);
-  }, [session?.user?.email, attempt, getValues, enqueueSnackbar]);
+  }, [format, attempt, getValues, enqueueSnackbar]);
 }
 
 export default useAutosave;
