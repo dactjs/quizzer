@@ -1,7 +1,8 @@
 import { PDFViewer, Document, Page, StyleSheet } from "@react-pdf/renderer";
 
 import { getShortUUID } from "@/schemas";
-import { Certificate } from "@/types";
+
+import { CertificateWithUserAndConvocatory } from "@/app/api/certificates/[certificate_id]/route";
 
 import { Background, Header, Content, Footer } from "./components";
 
@@ -19,7 +20,7 @@ const styles = StyleSheet.create({
 });
 
 export interface CertificatePDFProps {
-  certificate: Certificate;
+  certificate: CertificateWithUserAndConvocatory;
 }
 
 export const CertificatePDF: React.FC<CertificatePDFProps> = ({
