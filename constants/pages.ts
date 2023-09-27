@@ -2,6 +2,9 @@ export const PAGES = {
   // Auth
   SIGN_IN: "/auth/sign-in",
 
+  // Public
+  PUBLIC_CERTIFICATES: "/public/certificates",
+
   // User
   ROOT: "/",
   CONVOCATORIES: "/convocatories",

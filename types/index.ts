@@ -9,4 +9,5 @@ export {
   type QuizSubmission,
   QuizSubmissionStatus,
   QuizSubmissionReason,
+  type Certificate,
 } from "@prisma/client";

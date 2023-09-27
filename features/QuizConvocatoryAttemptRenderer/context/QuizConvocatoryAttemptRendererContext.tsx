@@ -4,6 +4,7 @@ import { FormProvider, useForm } from "react-hook-form";
 import confetti from "canvas-confetti";
 
 import { calcSubmissionScore, QuizQuestionResultData } from "@/schemas";
+import { Certificate } from "@/types";
 
 import { QuizConvocatoryAttempt } from "@/app/api/convocatories/[convocatory_id]/attempts/current/route";
 
@@ -18,6 +19,7 @@ import {
 
 type State = {
   attempt: QuizConvocatoryAttempt | null;
+  certificate: Certificate | null;
   mode: QuizConvocatoryAttemptRendererMode;
   page: number;
   isShowingResults: boolean;
@@ -34,7 +36,10 @@ type Action =
     }
   | {
       type: "SHOW_RESULTS";
-      payload: QuizConvocatoryAttempt;
+      payload: {
+        attempt: QuizConvocatoryAttempt;
+        certificate: Certificate | null;
+      };
     }
   | { type: "HIDE_RESULTS" };
 
@@ -55,8 +60,10 @@ const reducer: Reducer<State, Action> = (state, action): State => {
     }
 
     case "SHOW_RESULTS": {
-      if (action.payload.submission) {
-        const { passed } = calcSubmissionScore(action.payload.submission);
+      if (action.payload.attempt.submission) {
+        const { passed } = calcSubmissionScore(
+          action.payload.attempt.submission
+        );
 
         if (passed) {
           confetti({
@@ -70,7 +77,8 @@ const reducer: Reducer<State, Action> = (state, action): State => {
       return {
         ...state,
         mode: QuizConvocatoryAttemptRendererMode.REVIEW,
-        attempt: action.payload,
+        attempt: action.payload.attempt,
+        certificate: action.payload.certificate,
         isShowingResults: true,
       };
     }
@@ -86,6 +94,7 @@ const reducer: Reducer<State, Action> = (state, action): State => {
 
 const initialState: State = {
   attempt: null,
+  certificate: null,
   mode: QuizConvocatoryAttemptRendererMode.ATTEMPT,
   page: 1,
   isShowingResults: false,
@@ -97,6 +106,7 @@ const initialState: State = {
 
 export type QuizConvocatoryAttemptRendererContextValue = {
   attempt: QuizConvocatoryAttempt;
+  certificate: Certificate | null;
 
   mode: QuizConvocatoryAttemptRendererMode;
   changeMode: (mode: QuizConvocatoryAttemptRendererMode) => void;
@@ -105,7 +115,12 @@ export type QuizConvocatoryAttemptRendererContextValue = {
   changePage: (page: number) => void;
 
   isShowingResults: boolean;
-  showResults: (attempt: QuizConvocatoryAttempt) => void;
+
+  showResults: (payload: {
+    attempt: QuizConvocatoryAttempt;
+    certificate: Certificate | null;
+  }) => void;
+
   hideResults: () => void;
 };
 
@@ -145,8 +160,10 @@ export const QuizConvocatoryAttemptRendererProvider: React.FC<
   const handlePageChange = (page: number) =>
     dispatch({ type: "CHANGE_PAGE", payload: page });
 
-  const handleShowResults = (attempt: QuizConvocatoryAttempt) =>
-    dispatch({ type: "SHOW_RESULTS", payload: attempt });
+  const handleShowResults = (payload: {
+    attempt: QuizConvocatoryAttempt;
+    certificate: Certificate | null;
+  }) => dispatch({ type: "SHOW_RESULTS", payload });
 
   const handleHideResults = () => dispatch({ type: "HIDE_RESULTS" });
 
@@ -154,6 +171,7 @@ export const QuizConvocatoryAttemptRendererProvider: React.FC<
     <QuizConvocatoryAttemptRendererContext.Provider
       value={{
         attempt: state.attempt || attempt,
+        certificate: state.certificate,
 
         mode: state.mode,
         changeMode: handleModeChange,

@@ -22,6 +22,7 @@ model User {
 
   convocatories QuizConvocatory[]
   submissions   QuizSubmission[]
+  certificates  Certificate[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -99,8 +100,9 @@ model QuizConvocatory {
   attempts  Int    @default(1)
   timer     Int?
 
-  users       User[]
-  submissions QuizSubmission[]
+  users        User[]
+  submissions  QuizSubmission[]
+  certificates Certificate[]
 
   version   QuizVersion @relation(fields: [versionId], references: [id], onDelete: Restrict)
   versionId String
@@ -143,4 +145,23 @@ enum QuizSubmissionStatus {
 enum QuizSubmissionReason {
   SUBMITTED
   TIMEOUT
+}
+
+//////////////////
+// Certificates //
+//////////////////
+
+model Certificate {
+  id String @id @default(uuid())
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String
+
+  convocatory   QuizConvocatory @relation(fields: [convocatoryId], references: [id], onDelete: Cascade)
+  convocatoryId String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, convocatoryId])
 }

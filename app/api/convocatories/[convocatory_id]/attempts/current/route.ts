@@ -3,6 +3,7 @@ import { StatusCodes, ReasonPhrases } from "http-status-codes";
 
 import { prisma } from "@/lib";
 import {
+  calcSubmissionScore,
   UpdateCurrentQuizAttemptSchema,
   DeleteCurrentQuizAttemptSchema,
   RouteSegmentUnifiedSerializedResponse,
@@ -15,6 +16,7 @@ import {
   QuizConvocatory,
   QuizVersion,
   Quiz,
+  Certificate,
 } from "@/types";
 
 import { getQuestions } from "./_utils";
@@ -368,13 +370,15 @@ export async function PUT(
   }
 }
 
-export type DeleteResponse =
-  RouteSegmentUnifiedSerializedResponse<QuizConvocatoryAttempt>;
+export type DeleteResponse = RouteSegmentUnifiedSerializedResponse<{
+  attempt: QuizConvocatoryAttempt;
+  certificate: Certificate | null;
+}>;
 
 export async function DELETE(
   request: Request,
   { params }: { params: Params }
-): Promise<NextResponse<PutResponse>> {
+): Promise<NextResponse<DeleteResponse>> {
   try {
     const { searchParams } = new URL(request.url);
 
@@ -393,7 +397,7 @@ export async function DELETE(
       );
     }
 
-    const attempt = await prisma.$transaction(async (tx) => {
+    const { attempt, certificate } = await prisma.$transaction(async (tx) => {
       const convocatory = await tx.quizConvocatory.findUniqueOrThrow({
         where: { id: params.convocatory_id, users: { some: { email } } },
         include: { version: { include: { quiz: true } } },
@@ -440,15 +444,38 @@ export async function DELETE(
         include: { questions: true, user: true },
       });
 
+      const { passed } = calcSubmissionScore(updated);
+
+      if (passed) {
+        const certificate = await tx.certificate.create({
+          data: {
+            user: { connect: { email } },
+            convocatory: { connect: { id: params.convocatory_id } },
+          },
+        });
+
+        return {
+          certificate,
+          attempt: {
+            number,
+            submission: updated,
+            convocatory,
+          },
+        };
+      }
+
       return {
-        number,
-        submission: updated,
-        convocatory,
+        certificate: null,
+        attempt: {
+          number,
+          submission: updated,
+          convocatory,
+        },
       };
     });
 
     return NextResponse.json({
-      data: attempt,
+      data: { attempt, certificate },
       error: null,
     });
   } catch (error) {

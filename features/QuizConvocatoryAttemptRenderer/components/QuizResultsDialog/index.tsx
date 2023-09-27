@@ -1,18 +1,22 @@
 "use client";
 
+import NextLink from "next/link";
 import {
   Stack,
   Divider,
   Dialog,
   DialogContent,
   Typography,
+  Button,
 } from "@mui/material";
 import {
   Celebration as CelebrationIcon,
+  CardMembership as CertificateIcon,
   SentimentVeryDissatisfied as SadIcon,
 } from "@mui/icons-material";
 
 import { calcSubmissionScore } from "@/schemas";
+import { PAGES } from "@/constants";
 
 import { useQuizConvocatoryAttemptRenderer } from "../../context";
 
@@ -65,6 +69,20 @@ export const QuizResultsDialog: React.FC = () => {
               {score.toFixed(2)}
             </Typography>
           </Stack>
+
+          {passed && (
+            <Button
+              LinkComponent={NextLink}
+              href={`${PAGES.PUBLIC_CERTIFICATES}/`}
+              target="_blank"
+              fullWidth
+              size="small"
+              variant="contained"
+              endIcon={<CertificateIcon />}
+            >
+              Descargar certificado
+            </Button>
+          )}
         </Stack>
       </DialogContent>
     </Dialog>

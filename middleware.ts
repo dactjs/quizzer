@@ -26,10 +26,11 @@ export default withAuth({
 export const config = {
   /*
    * Match all request paths except for the ones starting with:
+   * - public (public pages)
    * - api (API routes)
    * - _next/static (static files)
    * - _next/image (image optimization files)
    * - favicon.ico (favicon file)
    */
-  matcher: ["/((?!api|_next/static|_next/image|favicon.ico).*)"],
+  matcher: ["/((?!public|api|_next/static|_next/image|favicon.ico).*)"],
 };
