@@ -1,7 +1,7 @@
 import { View, Image as ImagePDF, Text, StyleSheet } from "@react-pdf/renderer";
 import QRCode from "qrcode";
 
-import { PAGES } from "@/constants";
+import { ENV, PAGES } from "@/constants";
 
 import { CertificateWithUserAndConvocatory } from "@/app/api/certificates/[certificate_id]/route";
 
@@ -32,7 +32,12 @@ export interface HeaderProps {
 }
 
 export const Header: React.FC<HeaderProps> = ({ certificate }) => {
-  const QR = QRCode.toDataURL(`${PAGES.PUBLIC_CERTIFICATES}/${certificate.id}`);
+  const url = new URL(
+    `${PAGES.PUBLIC_CERTIFICATES}/${certificate.id}`,
+    ENV.NEXT_PUBLIC_SITE_URL
+  );
+
+  const QR = QRCode.toDataURL(url.toString());
 
   return (
     <View style={styles.container}>
