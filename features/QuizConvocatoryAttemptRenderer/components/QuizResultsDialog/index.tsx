@@ -21,7 +21,7 @@ import { PAGES } from "@/constants";
 import { useQuizConvocatoryAttemptRenderer } from "../../context";
 
 export const QuizResultsDialog: React.FC = () => {
-  const { attempt, isShowingResults, hideResults } =
+  const { attempt, certificate, isShowingResults, hideResults } =
     useQuizConvocatoryAttemptRenderer();
 
   if (!attempt.submission) return null;
@@ -70,10 +70,10 @@ export const QuizResultsDialog: React.FC = () => {
             </Typography>
           </Stack>
 
-          {passed && (
+          {certificate && (
             <Button
               LinkComponent={NextLink}
-              href={`${PAGES.PUBLIC_CERTIFICATES}/`}
+              href={`${PAGES.PUBLIC_CERTIFICATES}/${certificate.id}`}
               target="_blank"
               fullWidth
               size="small"
