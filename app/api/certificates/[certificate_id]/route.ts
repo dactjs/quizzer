@@ -1,8 +1,15 @@
 import { NextResponse } from "next/server";
 import { StatusCodes, ReasonPhrases } from "http-status-codes";
 
-import { prisma } from "@/lib";
-import { RouteSegmentUnifiedSerializedResponse } from "@/schemas";
+import { prisma, zod } from "@/lib";
+import {
+  CertificateSchema,
+  UserSchema,
+  QuizConvocatorySchema,
+  QuizVersionSchema,
+  QuizSchema,
+  RouteSegmentUnifiedSerializedResponse,
+} from "@/schemas";
 import { Certificate, User, QuizConvocatory, QuizVersion, Quiz } from "@/types";
 
 export const dynamic = "force-dynamic";
@@ -36,8 +43,23 @@ export async function GET(
       },
     });
 
+    const schema = CertificateSchema.merge(
+      zod.object({
+        user: UserSchema,
+        convocatory: QuizConvocatorySchema.merge(
+          zod.object({
+            version: QuizVersionSchema.merge(
+              zod.object({
+                quiz: QuizSchema,
+              })
+            ),
+          })
+        ),
+      })
+    );
+
     return NextResponse.json({
-      data: certificate,
+      data: schema.parse(certificate),
       error: null,
     });
   } catch (error) {
@@ -75,8 +97,23 @@ export async function DELETE(
       },
     });
 
+    const schema = CertificateSchema.merge(
+      zod.object({
+        user: UserSchema,
+        convocatory: QuizConvocatorySchema.merge(
+          zod.object({
+            version: QuizVersionSchema.merge(
+              zod.object({
+                quiz: QuizSchema,
+              })
+            ),
+          })
+        ),
+      })
+    );
+
     return NextResponse.json({
-      data: certificate,
+      data: schema.parse(certificate),
       error: null,
     });
   } catch (error) {

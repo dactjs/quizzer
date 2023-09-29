@@ -1,6 +1,8 @@
 "use client";
 
+import { Fragment } from "react";
 import {
+  Box,
   Paper,
   FormControl,
   FormControlLabel,
@@ -9,8 +11,14 @@ import {
   RadioGroup,
   Radio,
 } from "@mui/material";
+import { Masonry } from "@mui/lab";
 
-import { QuizQuestionResultData } from "@/schemas";
+import { isEqual } from "@/utils";
+import {
+  QuizQuestionResultData,
+  QuizQuestionOptionType,
+  QUIZ_QUESTION_IMAGE_OPTION_SEPARATOR,
+} from "@/schemas";
 
 export interface QuizQuestionResultRendererProps {
   result: QuizQuestionResultData;
@@ -19,7 +27,12 @@ export interface QuizQuestionResultRendererProps {
 export const QuizQuestionResultRenderer: React.FC<
   QuizQuestionResultRendererProps
 > = ({ result }) => {
-  const isCorrect = result.answer === result.question.answer;
+  const isCorrect =
+    result.answer && isEqual(result.answer, result.question.answer);
+
+  const correctAnswerIndex = result.question.options.findIndex((option) =>
+    isEqual(option, result.question.answer)
+  );
 
   return (
     <FormControl
@@ -42,27 +55,63 @@ export const QuizQuestionResultRenderer: React.FC<
         {result.question.prompt}
       </FormLabel>
 
-      <RadioGroup defaultValue={result.answer}>
+      <RadioGroup
+        defaultValue={result.answer && result.answer.id}
+        sx={{ paddingY: (theme) => theme.spacing(1.5) }}
+      >
         {result.question.options.map((option) => (
-          <FormControlLabel
-            key={option}
-            value={option}
-            label={option}
-            control={<Radio sx={{ color: "inherit !important" }} />}
-            slotProps={{ typography: { color: "inherit !important" } }}
-          />
+          <Fragment key={option.id}>
+            {option.type === QuizQuestionOptionType.TEXT && (
+              <FormControlLabel
+                value={option.id}
+                label={option.content}
+                control={<Radio sx={{ color: "inherit !important" }} />}
+                slotProps={{ typography: { color: "inherit !important" } }}
+              />
+            )}
+
+            {option.type === QuizQuestionOptionType.IMAGE && (
+              <FormControlLabel
+                value={option.id}
+                label={
+                  <Masonry columns={{ xs: 2, sm: 3, md: 5 }} spacing={2}>
+                    {option.content
+                      .split(QUIZ_QUESTION_IMAGE_OPTION_SEPARATOR)
+                      .map((image, index) => (
+                        <Box key={index}>
+                          <Box
+                            component="img"
+                            loading="lazy"
+                            alt={`Imagen ${index + 1}`}
+                            src={image}
+                            sx={{
+                              display: "block",
+                              width: "100%",
+                              height: "auto",
+                            }}
+                          />
+                        </Box>
+                      ))}
+                  </Masonry>
+                }
+                control={<Radio />}
+              />
+            )}
+          </Fragment>
         ))}
       </RadioGroup>
 
-      <FormHelperText
-        sx={{
-          marginX: 0,
-          fontWeight: "bold",
-          color: "inherit !important",
-        }}
-      >
-        {`Respuesta correcta: ${result.question.answer}`}
-      </FormHelperText>
+      {correctAnswerIndex >= 0 && (
+        <FormHelperText
+          sx={{
+            marginX: 0,
+            fontWeight: "bold",
+            color: "inherit !important",
+          }}
+        >
+          {`Respuesta correcta: ${correctAnswerIndex + 1}`}
+        </FormHelperText>
+      )}
     </FormControl>
   );
 };

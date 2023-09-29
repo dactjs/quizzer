@@ -25,11 +25,11 @@ export const QuestionReview: React.FC<QuestionReviewProps> = ({ question }) => {
 
   const value = watch(question.id);
 
-  const feedback = question.options.includes(value)
-    ? `Tu respuesta: ${value}`
+  const feedback = question.options.some((option) => option.id === value)
+    ? "Pregunta respondida"
     : "Pregunta no respondida";
 
-  const isCorrect = question.answer === value;
+  const isCorrect = question.answer.id === value;
 
   return (
     <Paper
@@ -56,7 +56,7 @@ export const QuestionReview: React.FC<QuestionReviewProps> = ({ question }) => {
           secondaryTypographyProps={{
             color: "inherit !important",
 
-            ...(!question.options.includes(value) && {
+            ...(!question.options.some((option) => option.id === value) && {
               sx: {
                 fontWeight: "bolder",
                 color: (theme) => theme.palette.error.main,

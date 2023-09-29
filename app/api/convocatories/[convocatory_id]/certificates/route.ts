@@ -1,8 +1,13 @@
 import { NextResponse } from "next/server";
 import { StatusCodes, ReasonPhrases } from "http-status-codes";
 
-import { prisma } from "@/lib";
+import { prisma, zod } from "@/lib";
 import {
+  CertificateSchema,
+  UserSchema,
+  QuizConvocatorySchema,
+  QuizVersionSchema,
+  QuizSchema,
   CreateCertificateSchema,
   RouteSegmentUnifiedSerializedResponse,
 } from "@/schemas";
@@ -40,8 +45,23 @@ export async function GET(
       },
     });
 
+    const schema = CertificateSchema.merge(
+      zod.object({
+        user: UserSchema,
+        convocatory: QuizConvocatorySchema.merge(
+          zod.object({
+            version: QuizVersionSchema.merge(
+              zod.object({
+                quiz: QuizSchema,
+              })
+            ),
+          })
+        ),
+      })
+    ).array();
+
     return NextResponse.json({
-      data: certificates,
+      data: schema.parse(certificates),
       error: null,
     });
   } catch (error) {
@@ -99,9 +119,24 @@ export async function POST(
       },
     });
 
+    const schema = CertificateSchema.merge(
+      zod.object({
+        user: UserSchema,
+        convocatory: QuizConvocatorySchema.merge(
+          zod.object({
+            version: QuizVersionSchema.merge(
+              zod.object({
+                quiz: QuizSchema,
+              })
+            ),
+          })
+        ),
+      })
+    );
+
     return NextResponse.json(
       {
-        data: certificate,
+        data: schema.parse(certificate),
         error: null,
       },
       {

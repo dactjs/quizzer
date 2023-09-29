@@ -9,8 +9,8 @@ import {
   ListItemIcon,
   Tooltip,
   Link as MuiLink,
-  useTheme,
 } from "@mui/material";
+import { useTheme } from "@mui/material/styles";
 
 import { useDashboard } from "../../../../context";
 import { DrawerNavigationItem } from "../../types";

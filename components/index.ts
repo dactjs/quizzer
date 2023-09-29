@@ -16,3 +16,4 @@ export * from "./NumberField";
 export * from "./ControlledTimePicker";
 export * from "./ControlledDatePicker";
 export * from "./ControlledDateTimePicker";
+export * from "./ControlledFilesDropzone";

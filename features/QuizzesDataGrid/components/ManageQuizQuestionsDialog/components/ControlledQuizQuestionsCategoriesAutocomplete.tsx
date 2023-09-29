@@ -1,10 +1,9 @@
 import { useMemo, useCallback } from "react";
+import { Autocomplete, TextField } from "@mui/material";
 import {
-  Autocomplete,
-  TextField,
   createFilterOptions,
   FilterOptionsState,
-} from "@mui/material";
+} from "@mui/material/useAutocomplete";
 import { Controller, Control } from "react-hook-form";
 
 import { QuizQuestion } from "@/types";

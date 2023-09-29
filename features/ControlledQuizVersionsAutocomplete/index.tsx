@@ -1,14 +1,11 @@
 "use client";
 
 import { useMemo, useCallback } from "react";
+import { Stack, Autocomplete, TextField, IconButton } from "@mui/material";
 import {
-  Stack,
-  Autocomplete,
-  TextField,
-  IconButton,
   createFilterOptions,
   FilterOptionsState,
-} from "@mui/material";
+} from "@mui/material/useAutocomplete";
 import { Edit as EditIcon, Delete as DeleteIcon } from "@mui/icons-material";
 import { useSnackbar } from "notistack";
 import { useConfirm } from "material-ui-confirm";

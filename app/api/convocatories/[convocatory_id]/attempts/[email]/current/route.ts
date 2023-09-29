@@ -1,9 +1,16 @@
 import { NextResponse } from "next/server";
 import { StatusCodes, ReasonPhrases } from "http-status-codes";
 
-import { prisma } from "@/lib";
+import { prisma, zod } from "@/lib";
 import {
   calcSubmissionScore,
+  UserSchema,
+  QuizSubmissionSchema,
+  QuizQuestionSchema,
+  QuizConvocatorySchema,
+  QuizVersionSchema,
+  QuizSchema,
+  CertificateSchema,
   UpdateCurrentQuizAttemptSchema,
   DeleteCurrentQuizAttemptSchema,
   RouteSegmentUnifiedSerializedResponse,
@@ -95,8 +102,27 @@ export async function GET(
       };
     });
 
+    const schema = zod.object({
+      number: zod.number().int().nonnegative(),
+      user: UserSchema,
+      submission: QuizSubmissionSchema.merge(
+        zod.object({
+          questions: QuizQuestionSchema.array(),
+        })
+      ).nullable(),
+      convocatory: QuizConvocatorySchema.merge(
+        zod.object({
+          version: QuizVersionSchema.merge(
+            zod.object({
+              quiz: QuizSchema,
+            })
+          ),
+        })
+      ),
+    });
+
     return NextResponse.json({
-      data: attempt,
+      data: schema.parse(attempt),
       error: null,
     });
   } catch (error) {
@@ -201,9 +227,28 @@ export async function POST(
       };
     });
 
+    const schema = zod.object({
+      number: zod.number().int().nonnegative(),
+      user: UserSchema,
+      submission: QuizSubmissionSchema.merge(
+        zod.object({
+          questions: QuizQuestionSchema.array(),
+        })
+      ).nullable(),
+      convocatory: QuizConvocatorySchema.merge(
+        zod.object({
+          version: QuizVersionSchema.merge(
+            zod.object({
+              quiz: QuizSchema,
+            })
+          ),
+        })
+      ),
+    });
+
     return NextResponse.json(
       {
-        data: attempt,
+        data: schema.parse(attempt),
         error: null,
       },
       {
@@ -308,8 +353,27 @@ export async function PUT(
       };
     });
 
+    const schema = zod.object({
+      number: zod.number().int().nonnegative(),
+      user: UserSchema,
+      submission: QuizSubmissionSchema.merge(
+        zod.object({
+          questions: QuizQuestionSchema.array(),
+        })
+      ).nullable(),
+      convocatory: QuizConvocatorySchema.merge(
+        zod.object({
+          version: QuizVersionSchema.merge(
+            zod.object({
+              quiz: QuizSchema,
+            })
+          ),
+        })
+      ),
+    });
+
     return NextResponse.json({
-      data: attempt,
+      data: schema.parse(attempt),
       error: null,
     });
   } catch (error) {
@@ -408,7 +472,9 @@ export async function DELETE(
         include: { questions: true },
       });
 
-      const { passed } = calcSubmissionScore(updated);
+      const { passed } = calcSubmissionScore(
+        updated as QuizSubmissionWithQuestions
+      );
 
       if (passed) {
         const certificate = await tx.certificate.upsert({
@@ -450,8 +516,30 @@ export async function DELETE(
       };
     });
 
+    const schema = zod.object({
+      attempt: zod.object({
+        number: zod.number().int().nonnegative(),
+        user: UserSchema,
+        submission: QuizSubmissionSchema.merge(
+          zod.object({
+            questions: QuizQuestionSchema.array(),
+          })
+        ).nullable(),
+        convocatory: QuizConvocatorySchema.merge(
+          zod.object({
+            version: QuizVersionSchema.merge(
+              zod.object({
+                quiz: QuizSchema,
+              })
+            ),
+          })
+        ),
+      }),
+      certificate: CertificateSchema.nullable(),
+    });
+
     return NextResponse.json({
-      data: { attempt, certificate },
+      data: schema.parse({ attempt, certificate }),
       error: null,
     });
   } catch (error) {

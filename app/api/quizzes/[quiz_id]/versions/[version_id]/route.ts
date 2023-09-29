@@ -1,8 +1,11 @@
 import { NextResponse } from "next/server";
 import { StatusCodes, ReasonPhrases } from "http-status-codes";
 
-import { prisma } from "@/lib";
+import { prisma, zod } from "@/lib";
 import {
+  QuizVersionSchema,
+  QuizSchema,
+  QuizQuestionSchema,
   UpdateQuizVersionSchema,
   RouteSegmentUnifiedSerializedResponse,
 } from "@/schemas";
@@ -33,8 +36,15 @@ export async function GET(
       include: { quiz: true, questions: true },
     });
 
+    const schema = QuizVersionSchema.merge(
+      zod.object({
+        quiz: QuizSchema,
+        questions: QuizQuestionSchema.array(),
+      })
+    );
+
     return NextResponse.json({
-      data: version,
+      data: schema.parse(version),
       error: null,
     });
   } catch (error) {
@@ -87,8 +97,15 @@ export async function PATCH(
       include: { quiz: true, questions: true },
     });
 
+    const schema = QuizVersionSchema.merge(
+      zod.object({
+        quiz: QuizSchema,
+        questions: QuizQuestionSchema.array(),
+      })
+    );
+
     return NextResponse.json({
-      data: version,
+      data: schema.parse(version),
       error: null,
     });
   } catch (error) {
@@ -123,8 +140,15 @@ export async function DELETE(
       include: { quiz: true, questions: true },
     });
 
+    const schema = QuizVersionSchema.merge(
+      zod.object({
+        quiz: QuizSchema,
+        questions: QuizQuestionSchema.array(),
+      })
+    );
+
     return NextResponse.json({
-      data: version,
+      data: schema.parse(version),
       error: null,
     });
   } catch (error) {

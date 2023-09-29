@@ -1,5 +1,10 @@
-import { View, Text, StyleSheet } from "@react-pdf/renderer";
+import { Fragment } from "react";
+import { View, Text, Image as ImagePDF, StyleSheet } from "@react-pdf/renderer";
 
+import {
+  QuizQuestionOptionType,
+  QUIZ_QUESTION_IMAGE_OPTION_SEPARATOR,
+} from "@/schemas";
 import { QuizQuestion } from "@/types";
 
 const styles = StyleSheet.create({
@@ -17,6 +22,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   prompt: {
+    flex: 1,
     marginRight: 5,
     fontFamily: "Times-Bold",
     fontSize: 16,
@@ -33,13 +39,6 @@ const styles = StyleSheet.create({
   content: {
     margin: 7.5,
   },
-  option: {
-    display: "flex",
-    flexDirection: "row",
-    justifyContent: "flex-start",
-    alignItems: "center",
-    margin: 2.5,
-  },
   checkbox: {
     width: 15,
     height: 15,
@@ -49,9 +48,31 @@ const styles = StyleSheet.create({
     borderStyle: "solid",
     borderColor: "black",
   },
-  answer: {
+  textOptionContainer: {
+    display: "flex",
+    flexDirection: "row",
+    justifyContent: "flex-start",
+    alignItems: "center",
+    marginHorizontal: 2.5,
+    marginVertical: 7.5,
+  },
+  textOptionContent: {
     marginLeft: 5,
     fontSize: 12,
+  },
+  imageOptionContainer: {
+    display: "flex",
+    flexDirection: "row",
+    justifyContent: "flex-start",
+    alignItems: "center",
+    flexWrap: "wrap",
+    marginHorizontal: 2.5,
+    marginVertical: 7.5,
+  },
+  imageOptionContent: {
+    marginLeft: 5,
+    maxWidth: 250,
+    height: 50,
   },
   description: {
     fontFamily: "Helvetica-Bold",
@@ -78,11 +99,31 @@ export const QuizQuestionPDF: React.FC<QuizQuestionPDFProps> = ({
 
     <View style={styles.content}>
       {question.options.map((option, index) => (
-        <View key={`${index}.${option}`} style={styles.option}>
-          <View style={styles.checkbox} />
+        <Fragment key={option.id}>
+          {option.type === QuizQuestionOptionType.TEXT && (
+            <View style={styles.textOptionContainer}>
+              <View style={styles.checkbox} />
 
-          <Text style={styles.answer}>{`${index + 1}. ${option}`}</Text>
-        </View>
+              <Text style={styles.textOptionContent}>
+                {`${index + 1}. ${option.content}`}
+              </Text>
+            </View>
+          )}
+
+          {option.type === QuizQuestionOptionType.IMAGE && (
+            <View style={styles.imageOptionContainer}>
+              <View style={styles.checkbox} />
+
+              {option.content
+                .split(QUIZ_QUESTION_IMAGE_OPTION_SEPARATOR)
+                .map((image, index) => (
+                  <View key={index}>
+                    <ImagePDF src={image} style={styles.imageOptionContent} />
+                  </View>
+                ))}
+            </View>
+          )}
+        </Fragment>
       ))}
     </View>
 

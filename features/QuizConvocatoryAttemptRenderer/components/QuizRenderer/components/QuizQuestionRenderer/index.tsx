@@ -1,6 +1,8 @@
 "use client";
 
+import { Fragment } from "react";
 import {
+  Box,
   Paper,
   Stack,
   FormControl,
@@ -11,8 +13,13 @@ import {
   Radio,
   Chip,
 } from "@mui/material";
+import { Masonry } from "@mui/lab";
 import { Controller, useFormContext } from "react-hook-form";
 
+import {
+  QuizQuestionOptionType,
+  QUIZ_QUESTION_IMAGE_OPTION_SEPARATOR,
+} from "@/schemas";
 import { QuizQuestion } from "@/types";
 
 import { useQuizConvocatoryAttemptRenderer } from "../../../../context";
@@ -57,6 +64,7 @@ export const QuizQuestionRenderer: React.FC<QuizQuestionRendererProps> = ({
           error={Boolean(error)}
           sx={{
             padding: (theme) => theme.spacing(4),
+            userSelect: "none",
             ...(!visible && { display: "none" }),
           }}
         >
@@ -71,14 +79,49 @@ export const QuizQuestionRenderer: React.FC<QuizQuestionRendererProps> = ({
             <Chip size="small" label={question.category} />
           </Stack>
 
-          <RadioGroup value={value} onChange={onChange}>
+          <RadioGroup
+            value={value}
+            onChange={onChange}
+            sx={{ paddingY: (theme) => theme.spacing(1.5) }}
+          >
             {question.options.map((option) => (
-              <FormControlLabel
-                key={option}
-                value={option}
-                label={option}
-                control={<Radio />}
-              />
+              <Fragment key={option.id}>
+                {option.type === QuizQuestionOptionType.TEXT && (
+                  <FormControlLabel
+                    value={option.id}
+                    label={option.content}
+                    control={<Radio />}
+                  />
+                )}
+
+                {option.type === QuizQuestionOptionType.IMAGE && (
+                  <FormControlLabel
+                    value={option.id}
+                    label={
+                      <Masonry columns={{ xs: 2, sm: 3, md: 5 }} spacing={2}>
+                        {option.content
+                          .split(QUIZ_QUESTION_IMAGE_OPTION_SEPARATOR)
+                          .map((image, index) => (
+                            <Box key={index}>
+                              <Box
+                                component="img"
+                                loading="lazy"
+                                alt={`Imagen ${index + 1}`}
+                                src={image}
+                                sx={{
+                                  display: "block",
+                                  width: "100%",
+                                  height: "auto",
+                                }}
+                              />
+                            </Box>
+                          ))}
+                      </Masonry>
+                    }
+                    control={<Radio />}
+                  />
+                )}
+              </Fragment>
             ))}
           </RadioGroup>
 

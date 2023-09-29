@@ -1,9 +1,10 @@
-import { useReducer, useContext, createContext, Reducer } from "react";
+import { useReducer, useContext, useRef, createContext, Reducer } from "react";
 import { TabContext } from "@mui/lab";
 import { FormProvider, useForm } from "react-hook-form";
 import confetti from "canvas-confetti";
 
-import { calcSubmissionScore, QuizQuestionResultData } from "@/schemas";
+import { isEqual } from "@/utils";
+import { calcSubmissionScore } from "@/schemas";
 import { Certificate } from "@/types";
 
 import { QuizConvocatoryAttempt } from "@/app/api/convocatories/[convocatory_id]/attempts/[email]/current/route";
@@ -106,6 +107,8 @@ const initialState: State = {
 /////////////
 
 export type QuizConvocatoryAttemptRendererContextValue = {
+  contentRef: React.MutableRefObject<HTMLDivElement | null>;
+
   format: QuizConvocatoryAttemptRendererFormat;
   attempt: QuizConvocatoryAttempt;
   certificate: Certificate | null;
@@ -139,17 +142,16 @@ export interface QuizConvocatoryAttemptRendererProviderProps {
 export const QuizConvocatoryAttemptRendererProvider: React.FC<
   React.PropsWithChildren<QuizConvocatoryAttemptRendererProviderProps>
 > = ({ format, attempt, children }) => {
-  const results = attempt.submission
-    ? (attempt.submission.results as QuizQuestionResultData[])
-    : [];
+  const results = attempt.submission ? attempt.submission.results : [];
 
   const methods = useForm({
     defaultValues: results
-      .filter((result) => {
-        return result.answer && result.question.options.includes(result.answer);
-      })
-      .reduce((acc, result) => {
-        if (result.answer) acc[result.question.id] = result.answer;
+      .filter(
+        ({ answer, question }) =>
+          answer && question.options.some((option) => isEqual(option, answer))
+      )
+      .reduce((acc, { answer, question }) => {
+        if (answer) acc[question.id] = answer.id;
 
         return acc;
       }, {} as QuizRendererFormValues),
@@ -157,11 +159,16 @@ export const QuizConvocatoryAttemptRendererProvider: React.FC<
 
   const [state, dispatch] = useReducer(reducer, initialState);
 
+  const contentRef = useRef<HTMLDivElement | null>(null);
+
   const handleModeChange = (mode: QuizConvocatoryAttemptRendererMode) =>
     dispatch({ type: "CHANGE_MODE", payload: mode });
 
-  const handlePageChange = (page: number) =>
+  const handlePageChange = (page: number) => {
+    if (contentRef.current) contentRef.current.scrollTo({ top: 0 });
+
     dispatch({ type: "CHANGE_PAGE", payload: page });
+  };
 
   const handleShowResults = (payload: {
     attempt: QuizConvocatoryAttempt;
@@ -173,6 +180,7 @@ export const QuizConvocatoryAttemptRendererProvider: React.FC<
   return (
     <QuizConvocatoryAttemptRendererContext.Provider
       value={{
+        contentRef,
         format,
         attempt: state.attempt || attempt,
         certificate: state.certificate,

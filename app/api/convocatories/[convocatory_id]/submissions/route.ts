@@ -1,8 +1,13 @@
 import { NextResponse } from "next/server";
 import { StatusCodes, ReasonPhrases } from "http-status-codes";
 
-import { prisma } from "@/lib";
+import { prisma, zod } from "@/lib";
 import {
+  QuizSubmissionSchema,
+  QuizConvocatorySchema,
+  QuizVersionSchema,
+  QuizSchema,
+  UserSchema,
   CreateQuizSubmissionSchema,
   RouteSegmentUnifiedSerializedResponse,
 } from "@/schemas";
@@ -46,8 +51,23 @@ export async function GET(
       },
     });
 
+    const schema = QuizSubmissionSchema.merge(
+      zod.object({
+        convocatory: QuizConvocatorySchema.merge(
+          zod.object({
+            version: QuizVersionSchema.merge(
+              zod.object({
+                quiz: QuizSchema,
+              })
+            ),
+          })
+        ),
+        user: UserSchema,
+      })
+    ).array();
+
     return NextResponse.json({
-      data: submissions,
+      data: schema.parse(submissions),
       error: null,
     });
   } catch (error) {
@@ -105,9 +125,24 @@ export async function POST(
       },
     });
 
+    const schema = QuizSubmissionSchema.merge(
+      zod.object({
+        convocatory: QuizConvocatorySchema.merge(
+          zod.object({
+            version: QuizVersionSchema.merge(
+              zod.object({
+                quiz: QuizSchema,
+              })
+            ),
+          })
+        ),
+        user: UserSchema,
+      })
+    );
+
     return NextResponse.json(
       {
-        data: submission,
+        data: schema.parse(submission),
         error: null,
       },
       {

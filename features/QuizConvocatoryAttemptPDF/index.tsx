@@ -49,6 +49,12 @@ const styles = StyleSheet.create({
   content: {
     marginTop: 5,
   },
+  footer: {
+    marginTop: "auto",
+    textAlign: "right",
+    fontFamily: "Helvetica-BoldOblique",
+    fontSize: 10,
+  },
 });
 
 export interface QuizConvocatoryAttemptPDFProps {
@@ -80,6 +86,12 @@ export const QuizConvocatoryAttemptPDF: React.FC<
             ))}
           </View>
         )}
+
+        <View fixed style={styles.footer}>
+          <Text>
+            {`Intento: ${attempt.number} / ${attempt.convocatory.attempts}`}
+          </Text>
+        </View>
       </Page>
     </Document>
   </PDFViewer>

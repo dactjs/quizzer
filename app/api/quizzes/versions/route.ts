@@ -1,8 +1,13 @@
 import { NextResponse } from "next/server";
 import { StatusCodes, ReasonPhrases } from "http-status-codes";
 
-import { prisma } from "@/lib";
-import { RouteSegmentUnifiedSerializedResponse } from "@/schemas";
+import { prisma, zod } from "@/lib";
+import {
+  QuizVersionSchema,
+  QuizSchema,
+  QuizQuestionSchema,
+  RouteSegmentUnifiedSerializedResponse,
+} from "@/schemas";
 import { QuizVersion, Quiz, QuizQuestion } from "@/types";
 
 export const dynamic = "force-dynamic";
@@ -23,8 +28,15 @@ export async function GET(_: Request): Promise<NextResponse<GetResponse>> {
       orderBy: { quiz: { subject: "asc" } },
     });
 
+    const schema = QuizVersionSchema.merge(
+      zod.object({
+        quiz: QuizSchema,
+        questions: QuizQuestionSchema.array(),
+      })
+    ).array();
+
     return NextResponse.json({
-      data: versions,
+      data: schema.parse(versions),
       error: null,
     });
   } catch (error) {

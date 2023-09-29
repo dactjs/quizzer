@@ -3,6 +3,7 @@ import { StatusCodes, ReasonPhrases } from "http-status-codes";
 
 import { prisma } from "@/lib";
 import {
+  QuizSchema,
   CreateQuizSchema,
   RouteSegmentUnifiedSerializedResponse,
 } from "@/schemas";
@@ -16,8 +17,10 @@ export async function GET(): Promise<NextResponse<GetResponse>> {
   try {
     const quizzes = await prisma.quiz.findMany();
 
+    const schema = QuizSchema.array();
+
     return NextResponse.json({
-      data: quizzes,
+      data: schema.parse(quizzes),
       error: null,
     });
   } catch (error) {
@@ -80,9 +83,11 @@ export async function POST(
       });
     });
 
+    const schema = QuizSchema;
+
     return NextResponse.json(
       {
-        data: quiz,
+        data: schema.parse(quiz),
         error: null,
       },
       {

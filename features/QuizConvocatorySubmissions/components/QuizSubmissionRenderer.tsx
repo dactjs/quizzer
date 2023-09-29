@@ -5,7 +5,7 @@ import { Stack, Divider, Typography, Pagination } from "@mui/material";
 import { formatDistance } from "date-fns";
 import es from "date-fns/locale/es";
 
-import { calcSubmissionScore, QuizQuestionResultData } from "@/schemas";
+import { calcSubmissionScore } from "@/schemas";
 
 import { QuizSubmissionWithConvocatoryAndUser } from "@/app/api/convocatories/[convocatory_id]/submissions/route";
 
@@ -120,11 +120,11 @@ export const QuizSubmissionRenderer: React.FC<QuizSubmissionRendererProps> = ({
       </Stack>
 
       <Stack spacing={1.5} divider={<Divider flexItem />}>
-        {(submission.results as QuizQuestionResultData[])
+        {submission.results
           .slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
           .map((result, index) => (
             <QuizQuestionResultRenderer
-              key={`${index}.${result.answer}`}
+              key={`${index}.${result.question.id}`}
               result={result}
             />
           ))}

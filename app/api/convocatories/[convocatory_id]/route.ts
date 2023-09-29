@@ -1,8 +1,13 @@
 import { NextResponse } from "next/server";
 import { StatusCodes, ReasonPhrases } from "http-status-codes";
 
-import { prisma } from "@/lib";
+import { prisma, zod } from "@/lib";
 import {
+  QuizConvocatorySchema,
+  QuizVersionSchema,
+  QuizSchema,
+  QuizQuestionSchema,
+  UserSchema,
   UpdateQuizConvocatorySchema,
   RouteSegmentUnifiedSerializedResponse,
 } from "@/schemas";
@@ -51,8 +56,20 @@ export async function GET(
       },
     });
 
+    const schema = QuizConvocatorySchema.merge(
+      zod.object({
+        version: QuizVersionSchema.merge(
+          zod.object({
+            quiz: QuizSchema,
+            questions: QuizQuestionSchema.array(),
+          })
+        ),
+        users: UserSchema.array(),
+      })
+    );
+
     return NextResponse.json({
-      data: convocatory,
+      data: schema.parse(convocatory),
       error: null,
     });
   } catch (error) {
@@ -125,8 +142,20 @@ export async function PATCH(
       },
     });
 
+    const schema = QuizConvocatorySchema.merge(
+      zod.object({
+        version: QuizVersionSchema.merge(
+          zod.object({
+            quiz: QuizSchema,
+            questions: QuizQuestionSchema.array(),
+          })
+        ),
+        users: UserSchema.array(),
+      })
+    );
+
     return NextResponse.json({
-      data: convocatory,
+      data: schema.parse(convocatory),
       error: null,
     });
   } catch (error) {
@@ -169,8 +198,20 @@ export async function DELETE(
       },
     });
 
+    const schema = QuizConvocatorySchema.merge(
+      zod.object({
+        version: QuizVersionSchema.merge(
+          zod.object({
+            quiz: QuizSchema,
+            questions: QuizQuestionSchema.array(),
+          })
+        ),
+        users: UserSchema.array(),
+      })
+    );
+
     return NextResponse.json({
-      data: convocatory,
+      data: schema.parse(convocatory),
       error: null,
     });
   } catch (error) {

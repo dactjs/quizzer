@@ -95,17 +95,23 @@ export function useTimer() {
           const data: DeleteCurrentQuizAttemptData = {
             reason: QuizSubmissionReason.TIMEOUT,
             results: attempt.submission
-              ? attempt.submission.questions.map((question) => ({
-                  answer: values[question.id] || null,
-                  question: {
-                    id: question.id,
-                    prompt: question.prompt,
-                    description: question.description,
-                    options: question.options,
-                    answer: question.answer,
-                    category: question.category,
-                  },
-                }))
+              ? attempt.submission.questions.map((question) => {
+                  const answer = question.options.find(
+                    (option) => option.id === values[question.id]
+                  );
+
+                  return {
+                    answer: answer || null,
+                    question: {
+                      id: question.id,
+                      prompt: question.prompt,
+                      description: question.description,
+                      options: question.options,
+                      answer: question.answer,
+                      category: question.category,
+                    },
+                  };
+                })
               : [],
           };
 

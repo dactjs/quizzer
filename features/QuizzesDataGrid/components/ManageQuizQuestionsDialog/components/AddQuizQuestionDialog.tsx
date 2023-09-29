@@ -15,10 +15,13 @@ import {
   TextField,
   Typography,
   IconButton,
+  Popover,
   DialogProps,
 } from "@mui/material";
 import {
   AddCircle as AddIcon,
+  WrapText as TextIcon,
+  Image as ImageIcon,
   RemoveCircle as RemoveIcon,
   ArrowDropUp as ArrowUpIcon,
   ArrowDropDown as ArrowDownIcon,
@@ -27,19 +30,25 @@ import { TabContext, TabList, TabPanel, LoadingButton } from "@mui/lab";
 import { useSWRConfig } from "swr";
 import { useSnackbar } from "notistack";
 import { useConfirm } from "material-ui-confirm";
-import { useForm, useFieldArray, Control } from "react-hook-form";
+import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 
 import { zod } from "@/lib";
-import { NoData } from "@/components";
-import { CreateQuizQuestionSchema } from "@/schemas";
+import { NoData, ControlledFilesDropzone } from "@/components";
+import { isEqual } from "@/utils";
+import {
+  CreateQuizQuestionSchema,
+  QuizQuestionOptionType,
+  QuizQuestionOptionData,
+} from "@/schemas";
 import { ENV, ENDPOINTS } from "@/constants";
 
 import { QuizVersionWithQuizAndQuestions } from "@/app/api/quizzes/[quiz_id]/versions/[version_id]/route";
 import { PostResponse } from "@/app/api/quizzes/[quiz_id]/versions/[version_id]/questions/route";
 
-import ControlledQuizQuestionOptionsSelect from "./ControlledQuizQuestionOptionsSelect";
+import ControlledQuizQuestionOptionsAutocomplete from "./ControlledQuizQuestionOptionsAutocomplete";
 import ControlledQuizQuestionsCategoriesAutocomplete from "./ControlledQuizQuestionsCategoriesAutocomplete";
+import ControlledImagesDropzone from "./ControlledImagesDropzone";
 
 type FormData = zod.infer<typeof schema>;
 
@@ -68,8 +77,8 @@ export const AddQuizQuestionDialog: React.FC<AddQuizQuestionDialogProps> = ({
     control,
     getValues,
     setValue,
-    handleSubmit,
     reset,
+    handleSubmit,
   } = useForm<FormData>({
     resolver: zodResolver(schema),
   });
@@ -79,10 +88,7 @@ export const AddQuizQuestionDialog: React.FC<AddQuizQuestionDialogProps> = ({
     append,
     swap,
     remove,
-  } = useFieldArray({
-    control: control as unknown as Control,
-    name: "options",
-  });
+  } = useFieldArray({ control, name: "options" });
 
   const TABS = {
     INFO: "INFO",
@@ -90,6 +96,7 @@ export const AddQuizQuestionDialog: React.FC<AddQuizQuestionDialogProps> = ({
   } as const;
 
   const [tab, setTab] = useState<keyof typeof TABS>(TABS.INFO);
+  const [anchorEl, setAnchorEl] = useState<HTMLButtonElement | null>(null);
 
   const onSubmit = useCallback(
     async (formData: FormData) => {
@@ -132,12 +139,22 @@ export const AddQuizQuestionDialog: React.FC<AddQuizQuestionDialogProps> = ({
     [version, mutate, enqueueSnackbar, onClose]
   );
 
+  const handleAdd = useCallback(
+    (type: QuizQuestionOptionType) => {
+      append({ type, id: window.crypto.randomUUID(), content: "" });
+      setAnchorEl(null);
+    },
+    [append]
+  );
+
   const handleDelete = useCallback(
     (index: number) => {
       const option = getValues(`options.${index}`);
       const answer = getValues("answer");
 
-      if (option === answer) setValue("answer", "");
+      if (isEqual(option, answer)) {
+        setValue("answer", null as unknown as QuizQuestionOptionData);
+      }
 
       remove(index);
     },
@@ -162,190 +179,241 @@ export const AddQuizQuestionDialog: React.FC<AddQuizQuestionDialogProps> = ({
   }, [onClose, isDirty, reset, confirm]);
 
   return (
-    <Dialog {...rest} onClose={handleOnClose}>
-      <DialogTitle>Agregar pregunta</DialogTitle>
+    <>
+      <Popover
+        anchorEl={anchorEl}
+        open={Boolean(anchorEl)}
+        onClose={() => setAnchorEl(null)}
+        anchorOrigin={{ horizontal: "center", vertical: "bottom" }}
+        transformOrigin={{ horizontal: "center", vertical: "top" }}
+      >
+        <Stack
+          direction="row"
+          divider={<Divider flexItem orientation="vertical" />}
+        >
+          <IconButton
+            size="small"
+            onClick={() => handleAdd(QuizQuestionOptionType.TEXT)}
+            sx={{ padding: (theme) => theme.spacing(1) }}
+          >
+            <TextIcon />
+          </IconButton>
 
-      <DialogContent dividers sx={{ padding: 0 }}>
-        <Stack component="form" autoComplete="off">
-          <TabContext value={tab}>
-            <TabList
-              variant="fullWidth"
-              onChange={(_, value) => setTab(value)}
-              sx={{
-                backgroundColor: (theme) => theme.palette.background.paper,
-              }}
-            >
-              <Tab label="Información" value={TABS.INFO} />
-              <Tab label="Opciones" value={TABS.OPTIONS} />
-            </TabList>
+          <IconButton
+            size="small"
+            onClick={() => handleAdd(QuizQuestionOptionType.IMAGE)}
+            sx={{ padding: (theme) => theme.spacing(1) }}
+          >
+            <ImageIcon />
+          </IconButton>
+        </Stack>
+      </Popover>
 
-            <TabPanel value={TABS.INFO}>
-              <Stack spacing={2}>
-                <TextField
-                  required
-                  autoComplete="off"
-                  label="Enunciado"
-                  disabled={isSubmitting}
-                  inputProps={register("prompt")}
-                  error={Boolean(errors.prompt)}
-                  helperText={errors.prompt?.message}
-                />
+      <Dialog {...rest} onClose={handleOnClose}>
+        <DialogTitle>Agregar pregunta</DialogTitle>
 
-                <TextField
-                  multiline
-                  autoComplete="off"
-                  label="Descripción"
-                  disabled={isSubmitting}
-                  inputProps={register("description")}
-                  error={Boolean(errors.description)}
-                  helperText={errors.description?.message}
-                />
+        <DialogContent dividers sx={{ padding: 0 }}>
+          <Stack component="form" autoComplete="off">
+            <TabContext value={tab}>
+              <TabList
+                variant="fullWidth"
+                onChange={(_, value) => setTab(value)}
+                sx={{
+                  backgroundColor: (theme) => theme.palette.background.paper,
+                }}
+              >
+                <Tab label="Información" value={TABS.INFO} />
+                <Tab label="Opciones" value={TABS.OPTIONS} />
+              </TabList>
 
-                <ControlledQuizQuestionsCategoriesAutocomplete
-                  questions={version.questions}
-                  required
-                  label="Categoría"
-                  name="category"
-                  control={control}
-                  disabled={isSubmitting}
-                />
-              </Stack>
-            </TabPanel>
+              <TabPanel value={TABS.INFO}>
+                <Stack spacing={2}>
+                  <TextField
+                    multiline
+                    required
+                    autoComplete="off"
+                    label="Enunciado"
+                    disabled={isSubmitting}
+                    inputProps={register("prompt")}
+                    error={Boolean(errors.prompt)}
+                    helperText={errors.prompt?.message}
+                  />
 
-            <TabPanel value={TABS.OPTIONS}>
-              <Stack spacing={1} divider={<Divider flexItem />}>
-                <ControlledQuizQuestionOptionsSelect
-                  options={watch("options") || []}
-                  required
-                  label="Respuesta correcta"
-                  name="answer"
-                  control={control}
-                  disabled={isSubmitting}
-                />
+                  <TextField
+                    multiline
+                    autoComplete="off"
+                    label="Descripción"
+                    disabled={isSubmitting}
+                    inputProps={register("description")}
+                    error={Boolean(errors.description)}
+                    helperText={errors.description?.message}
+                  />
 
-                <List
-                  disablePadding
-                  sx={{
-                    position: "relative",
-                    maxHeight: 300,
-                    borderRadius: 1,
-                    backgroundColor: (theme) => theme.palette.background.paper,
-                    overflow: "auto",
-                    ...(errors.options && {
-                      border: (theme) =>
-                        `1px solid ${theme.palette.error.main}`,
-                    }),
-                  }}
-                >
-                  <ListSubheader
+                  <ControlledQuizQuestionsCategoriesAutocomplete
+                    questions={version.questions}
+                    required
+                    label="Categoría"
+                    name="category"
+                    control={control}
+                    disabled={isSubmitting}
+                  />
+                </Stack>
+              </TabPanel>
+
+              <TabPanel value={TABS.OPTIONS}>
+                <Stack spacing={1} divider={<Divider flexItem />}>
+                  <ControlledQuizQuestionOptionsAutocomplete
+                    options={watch("options") || []}
+                    required
+                    label="Respuesta correcta"
+                    name="answer"
+                    control={control}
+                    disabled={isSubmitting}
+                  />
+
+                  <List
+                    disablePadding
                     sx={{
-                      zIndex: (theme) => theme.zIndex.tooltip,
-                      display: "flex",
-                      justifyContent: "space-between",
-                      alignItems: "center",
-                      gap: (theme) => theme.spacing(1),
-                      padding: (theme) => theme.spacing(1, 2),
-                      borderBottom: (theme) =>
-                        `1px solid ${theme.palette.divider}`,
+                      position: "relative",
+                      maxHeight: 300,
+                      borderRadius: 1,
+                      backgroundColor: (theme) =>
+                        theme.palette.background.paper,
+                      overflow: "auto",
+                      ...(errors.options && {
+                        border: (theme) =>
+                          `1px solid ${theme.palette.error.main}`,
+                      }),
                     }}
                   >
-                    <Typography variant="caption" fontWeight="bolder">
-                      Opciones
-                    </Typography>
-
-                    <IconButton
-                      size="small"
-                      disabled={isSubmitting}
-                      onClick={() => append(undefined)}
+                    <ListSubheader
+                      sx={{
+                        zIndex: (theme) => theme.zIndex.tooltip,
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                        gap: (theme) => theme.spacing(1),
+                        padding: (theme) => theme.spacing(1, 2),
+                        borderBottom: (theme) =>
+                          `1px solid ${theme.palette.divider}`,
+                      }}
                     >
-                      <AddIcon />
-                    </IconButton>
-                  </ListSubheader>
+                      <Typography variant="caption" fontWeight="bolder">
+                        Opciones
+                      </Typography>
 
-                  {options.length > 0 ? (
-                    options.map((option, index) => {
-                      const errs = errors.options;
+                      <IconButton
+                        size="small"
+                        disabled={isSubmitting}
+                        onClick={(event) => setAnchorEl(event.currentTarget)}
+                      >
+                        <AddIcon />
+                      </IconButton>
+                    </ListSubheader>
 
-                      const isFirstOption = index === 0;
-                      const isLastOption = options.length - 1 === index;
+                    {options.length > 0 ? (
+                      options.map((option, index) => {
+                        const errs = errors.options;
 
-                      return (
-                        <ListItem key={option.id} divider>
-                          <ListItemIcon
-                            sx={{
-                              gap: (theme) => theme.spacing(0.5),
-                              paddingRight: (theme) => theme.spacing(2.5),
-                            }}
-                          >
-                            <IconButton
-                              edge="end"
-                              size="small"
-                              disabled={isSubmitting || isFirstOption}
-                              onClick={() => swap(index, index - 1)}
+                        const isFirstOption = index === 0;
+                        const isLastOption = options.length - 1 === index;
+
+                        return (
+                          <ListItem key={option.id} divider>
+                            <ListItemIcon
+                              sx={{
+                                gap: (theme) => theme.spacing(0.5),
+                                paddingRight: (theme) => theme.spacing(2.5),
+                              }}
                             >
-                              <ArrowUpIcon fontSize="small" />
-                            </IconButton>
+                              <IconButton
+                                edge="end"
+                                size="small"
+                                disabled={isSubmitting || isFirstOption}
+                                onClick={() => swap(index, index - 1)}
+                              >
+                                <ArrowUpIcon fontSize="small" />
+                              </IconButton>
 
-                            <IconButton
-                              edge="start"
-                              size="small"
-                              disabled={isSubmitting || isLastOption}
-                              onClick={() => swap(index, index + 1)}
-                            >
-                              <ArrowDownIcon fontSize="small" />
-                            </IconButton>
-                          </ListItemIcon>
+                              <IconButton
+                                edge="start"
+                                size="small"
+                                disabled={isSubmitting || isLastOption}
+                                onClick={() => swap(index, index + 1)}
+                              >
+                                <ArrowDownIcon fontSize="small" />
+                              </IconButton>
+                            </ListItemIcon>
 
-                          <TextField
-                            required
-                            fullWidth
-                            size="small"
-                            margin="dense"
-                            autoComplete="off"
-                            label={`Opción ${index + 1}`}
-                            disabled={isSubmitting}
-                            inputProps={register(`options.${index}`)}
-                            error={errs && Boolean(errs[index])}
-                            helperText={errs && errs[index]?.message}
-                          />
+                            {option.type === QuizQuestionOptionType.TEXT && (
+                              <TextField
+                                multiline
+                                required
+                                fullWidth
+                                size="small"
+                                margin="dense"
+                                autoComplete="off"
+                                label={`Opción ${index + 1}`}
+                                disabled={isSubmitting}
+                                inputProps={register(
+                                  `options.${index}.content`
+                                )}
+                                error={errs && Boolean(errs[index]?.content)}
+                                helperText={
+                                  errs && errs[index]?.content?.message
+                                }
+                              />
+                            )}
 
-                          <ListItemSecondaryAction>
-                            <IconButton
-                              edge="end"
-                              size="small"
-                              color="error"
-                              disabled={isSubmitting}
-                              onClick={() => handleDelete(index)}
-                            >
-                              <RemoveIcon fontSize="small" />
-                            </IconButton>
-                          </ListItemSecondaryAction>
-                        </ListItem>
-                      );
-                    })
-                  ) : (
-                    <NoData message="Debe ingresar al menos una opción" />
-                  )}
-                </List>
-              </Stack>
-            </TabPanel>
-          </TabContext>
-        </Stack>
-      </DialogContent>
+                            {option.type === QuizQuestionOptionType.IMAGE && (
+                              <ControlledImagesDropzone
+                                size="small"
+                                multiple
+                                required
+                                name={`options.${index}.content`}
+                                control={control}
+                                disabled={isSubmitting}
+                              />
+                            )}
 
-      <DialogActions>
-        <LoadingButton
-          type="submit"
-          variant="contained"
-          color="primary"
-          loading={isSubmitting}
-          disabled={!isDirty}
-          onClick={handleSubmit(onSubmit)}
-        >
-          Agregar
-        </LoadingButton>
-      </DialogActions>
-    </Dialog>
+                            <ListItemSecondaryAction>
+                              <IconButton
+                                edge="end"
+                                size="small"
+                                color="error"
+                                disabled={isSubmitting}
+                                onClick={() => handleDelete(index)}
+                              >
+                                <RemoveIcon fontSize="small" />
+                              </IconButton>
+                            </ListItemSecondaryAction>
+                          </ListItem>
+                        );
+                      })
+                    ) : (
+                      <NoData message="Debe ingresar al menos una opción" />
+                    )}
+                  </List>
+                </Stack>
+              </TabPanel>
+            </TabContext>
+          </Stack>
+        </DialogContent>
+
+        <DialogActions>
+          <LoadingButton
+            type="submit"
+            variant="contained"
+            color="primary"
+            loading={isSubmitting}
+            disabled={!isDirty}
+            onClick={handleSubmit(onSubmit)}
+          >
+            Agregar
+          </LoadingButton>
+        </DialogActions>
+      </Dialog>
+    </>
   );
 };
 

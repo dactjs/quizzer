@@ -7,9 +7,9 @@ type Params = {
 };
 
 export async function getQuestions(params: Params): Promise<QuizQuestion[]> {
-  const questions = await prisma.quizQuestion.findMany({
+  const questions = (await prisma.quizQuestion.findMany({
     where: { version: { id: params.version } },
-  });
+  })) as QuizQuestion[];
 
   const categories = Array.from(
     new Set(questions.map((question) => question.category))

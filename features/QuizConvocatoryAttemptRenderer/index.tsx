@@ -3,8 +3,6 @@
 import { Box, Paper, Stack, Divider } from "@mui/material";
 import { TabPanel } from "@mui/lab";
 
-import { LAYOUT_SIZES } from "@/components";
-
 import { QuizConvocatoryAttempt } from "@/app/api/convocatories/[convocatory_id]/attempts/[email]/current/route";
 
 import {
@@ -33,7 +31,8 @@ export interface QuizConvocatoryAttemptRendererProps {
 }
 
 const QuizConvocatoryAttemptRenderer: React.FC = () => {
-  const { attempt, isShowingResults } = useQuizConvocatoryAttemptRenderer();
+  const { contentRef, attempt, isShowingResults } =
+    useQuizConvocatoryAttemptRenderer();
 
   useAutosave();
 
@@ -101,17 +100,24 @@ const QuizConvocatoryAttemptRenderer: React.FC = () => {
           </Stack>
         </Paper>
 
-        <Paper sx={{ gridArea: { md: "content" }, overflow: { md: "auto" } }}>
+        <Paper
+          ref={contentRef}
+          sx={{
+            display: { md: "grid" },
+            gridArea: { md: "content" },
+            overflow: { md: "auto" },
+          }}
+        >
           <TabPanel
             value={QuizConvocatoryAttemptRendererMode.ATTEMPT}
-            sx={{ height: "100%" }}
+            sx={{ width: "100%", margin: "auto" }}
           >
             <QuizRenderer />
           </TabPanel>
 
           <TabPanel
             value={QuizConvocatoryAttemptRendererMode.REVIEW}
-            sx={{ height: "100%" }}
+            sx={{ width: "100%", margin: "auto" }}
           >
             <Review />
           </TabPanel>

@@ -78,8 +78,8 @@ model QuizQuestion {
   prompt      String
   description String?
 
-  options String[]
-  answer  String
+  options Json[] @default([]) // Array<QuizQuestionOption>
+  answer  Json // QuizQuestionOption
 
   category String @default("General")
 
@@ -120,7 +120,7 @@ model QuizSubmission {
   status QuizSubmissionStatus  @default(DRAFT)
   reason QuizSubmissionReason?
 
-  results Json[] @default([]) // Array <{ answer: string; question: QuizQuestion }>
+  results Json[] @default([]) // Array<{ answer: QuizQuestionOption; question: QuizQuestion }>
 
   questions QuizQuestion[]
 

@@ -1,7 +1,7 @@
 export const ENV = {
   // Server
   DATABASE_URL: process.env.DATABASE_URL as string,
-  NEXTAUTH_URL: process.env.NEXTAUTH_URL as string,
+  NEXTAUTH_URL: process.env.NEXTAUTH_URL as string, // Optional on Vercel but required on other hosts
   NEXTAUTH_SECRET: process.env.NEXTAUTH_SECRET as string,
   GITHUB_CLIENT_ID: process.env.GITHUB_CLIENT_ID as string,
   GITHUB_CLIENT_SECRET: process.env.GITHUB_CLIENT_SECRET as string,
@@ -20,7 +20,9 @@ const missing = isBrowser
   ? Object.entries(ENV)
       .filter(([key]) => key.startsWith("NEXT_PUBLIC"))
       .some(([, value]) => !value)
-  : Object.values(ENV).some((value) => !value);
+  : Object.entries(ENV)
+      .filter(([key]) => key !== "NEXTAUTH_URL") // Optional on Vercel but required on other hosts
+      .some(([_, value]) => !value);
 
 if (missing) throw new Error("Missing environment variables");
 

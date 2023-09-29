@@ -50,7 +50,7 @@ export const ManageQuizConvocatoryAttemptsDialog: React.FC<
         >
           <Typography fontWeight="bolder">Gestión manual</Typography>
 
-          <IconButton color="inherit" onClick={mutate}>
+          <IconButton color="inherit" onClick={() => mutate()}>
             <RefreshIcon />
           </IconButton>
         </Toolbar>

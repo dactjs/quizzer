@@ -1,8 +1,17 @@
 import { NextResponse } from "next/server";
 import { StatusCodes, ReasonPhrases } from "http-status-codes";
 
-import { prisma } from "@/lib";
-import { RouteSegmentUnifiedSerializedResponse } from "@/schemas";
+import { prisma, zod } from "@/lib";
+import {
+  UserSchema,
+  QuizSubmissionSchema,
+  QuizQuestionSchema,
+  QuizConvocatorySchema,
+  QuizVersionSchema,
+  QuizSchema,
+  CertificateSchema,
+  RouteSegmentUnifiedSerializedResponse,
+} from "@/schemas";
 import {
   QuizSubmission,
   QuizSubmissionStatus,
@@ -95,8 +104,32 @@ export async function GET(
       return Promise.all(promises);
     });
 
+    const schema = zod
+      .object({
+        attempt: zod.object({
+          number: zod.number().int().nonnegative(),
+          user: UserSchema,
+          submission: QuizSubmissionSchema.merge(
+            zod.object({
+              questions: QuizQuestionSchema.array(),
+            })
+          ).nullable(),
+          convocatory: QuizConvocatorySchema.merge(
+            zod.object({
+              version: QuizVersionSchema.merge(
+                zod.object({
+                  quiz: QuizSchema,
+                })
+              ),
+            })
+          ),
+        }),
+        certificate: CertificateSchema.nullable(),
+      })
+      .array();
+
     return NextResponse.json({
-      data: attempts,
+      data: schema.parse(attempts),
       error: null,
     });
   } catch (error) {

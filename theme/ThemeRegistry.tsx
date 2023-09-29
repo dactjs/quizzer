@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import { useServerInsertedHTML } from "next/navigation";
-import { ThemeProvider, CssBaseline, GlobalStyles } from "@mui/material";
+import { CssBaseline, GlobalStyles } from "@mui/material";
+import { ThemeProvider } from "@mui/material/styles";
 import {
   Cancel as CancelIcon,
   CheckCircle as CheckIcon,
