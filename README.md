@@ -44,6 +44,26 @@ La capacidad de generar certificados en PDF es una característica destacada de 
 
 6. **Explora y Personaliza:** Explora las funcionalidades de Quizzer y personalízalo según tus necesidades.
 
+## Esquemas para uso con ChatGPT
+
+Puedes usar los siguientes esquemas para indicarle a ChatGPT que te genere preguntas en formato JSON y luego importarlas.
+
+```TypeScript
+type Option = {
+  id: string; // UUID
+  type: "TEXT";
+  content: string;
+};
+
+type Question = {
+  prompt: string;
+  description: string;
+  options: Option[];
+  answer: Option;
+  category: string;
+};
+```
+
 ## Contacto
 
 Si tienes alguna pregunta, comentario o sugerencia, no dudes en ponerte en contacto conmigo en [dactjs@icloud.com](dactjs@icloud.com).
